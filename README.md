@@ -4,27 +4,27 @@
 ---
 
 ## **Popis projektu**
-Tento projekt slouží k extrahování výsledků z **parlamentních voleb v roce 2017**. 
+Tento projekt slouží k extrahování výsledků z **parlamentních voleb v roce 2017**.  
 **Zdroj najdete** [zde](https://www.volby.cz/pls/ps2017nss/ps3?xjazyk=CZ)
 
 ---
 
 ## **Aktivace virtuálního prostředí**
-Pro instalaci doporučuji využít nové virtuální prostředí. 
+Pro instalaci doporučuji využít nové virtuální prostředí.  
 Pro vytvoření nového virtuálního prostředí použij následující příkaz v terminálu:
 
-***Pro Windows***
-python -m venv <NAZEV_ENV>      # vytvoření nového virtuálního prostředí
+***Pro Windows***  
+python -m venv <NAZEV_ENV>      # vytvoření nového virtuálního prostředí  
 <NAZEV_ENV>\Scripts\Activate    # aktivace prostředí 
 
-Například: 
-python -m venv nove_venv
+Například:  
+python -m venv nove_venv  
 nove_venv\Scripts\Activate
 
 ---
 
 ## **Instalace knihoven**
-Knihovny, které jsou použity v kódu, jsou uvedeny v souboru requirements.txt.
+Knihovny, které jsou použity v kódu, jsou uvedeny v souboru requirements.txt.  
 Pro jejich instalaci použij tento příkaz:
 
 pip install -r requirements.txt
