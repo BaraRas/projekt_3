@@ -1,5 +1,5 @@
 """
-projekt_3.py: třetí projekt do Engeto Online Python Akademie, verze 3
+projekt_3.py: třetí projekt do Engeto Online Python Akademie, verze 2
 
 author: Barbora Rašticová
 email: rasticova.barbora@seznam.cz
@@ -49,11 +49,10 @@ def ziskej_obec(soup) -> list[dict[str, str]]:
         
         for tr in vsechny_tr:   # Pro všechny řádky v dané tabulce (kromě prvních dvou řádků) najde všechny sloupce 
             td_na_radku = tr.find_all("td")
-            if len(td_na_radku) >= 2:
-                data_obce.append({
-                    "code" : td_na_radku[0].get_text(),
-                    "location" : td_na_radku[1].get_text()
-                }) #vybere 1. a 2. sloupec a uloží je do slovníku ke klíčům code a location
+            data_obce.append({
+                "code" : td_na_radku[0].get_text(),
+                "location" : td_na_radku[1].get_text()
+            }) #vybere 1. a 2. sloupec a uloží je do slovníku ke klíčům code a location
 
     return data_obce
 
@@ -64,49 +63,37 @@ def extrahuj_data_z_tabulky(soup) -> dict[str, str]:
     Args:
         soup: HTML strom hlavní stránky 
     Returns:
-        dict[str, str]: Slovník s informacemi o voličích a stranách
+        Dict[str, str]: Slovník s informacemi o voličích a stranách
     '''
-    tabulky = soup.find_all("table")
 
-    # Pokud není ani jedna tabulka, vrať náhradní hodnoty
-    if len(tabulky) == 0:
-        return {
-            "registred": "N/A",
-            "envelopes": "N/A",
-            "valid": "N/A"
-        }
+    #tabulka_1 = voliči, celkove hlasy a obálky
+    tabulka_1 = soup.find_all("table")[0] # Najde všechny tabulky a vybere 1. tabulku s informacemi o celkovém počtu voličů, vydaných obálek a platných hlasů
+    radky = tabulka_1.find_all("tr")[2] # V tabulce nejde všechny řádky kromě prvních 2 (záhlaví tabulky)
 
-    #Tabulka 1: voliči, obálky, platné hlasy
-    data_tabulka_1 = {
-        "registred": "N/A",
-        "envelopes": "N/A",
-        "valid": "N/A"
-    }
+    try:
+        sloupce = radky.find_all("td") # Pro tyto řádky najde všechny dostupné sloupce 
+        data_tabulka_1 = { # Vybere 4, 5 a 7 sloupec a uloží je do slovníku s klíči registred, envelopec a valid
+            "registred" : sloupce[3].get_text().replace("\xa0", "").strip(), # z každého sloupce odstraní '/xa0', což je znak pevné mezery
+            "envelopes" : sloupce[4].get_text().replace("\xa0", "").strip(),
+            "valid" : sloupce[7].get_text().replace("\xa0", "").strip()
+        } 
+    except IndexError: #ošetření, v případě, že by daný sloupec neexistoval
+        data_tabulka_1 = {"registred": "N/A", "envelopes": "N/A", "valid": "N/A"}
 
-    if len(tabulky) >= 1:
-        radky = tabulky[0].find_all("tr")
-        if len(radky) >= 3:
-            sloupce = radky[2].find_all("td")
-            if len(sloupce) >= 8:
-                data_tabulka_1 = {
-                    "registred": sloupce[3].get_text().replace("\xa0", "").strip(),
-                    "envelopes": sloupce[4].get_text().replace("\xa0", "").strip(),
-                    "valid": sloupce[7].get_text().replace("\xa0", "").strip()
-                }
-
-    # Tabulky 2 a 3: strany a hlasy
+    #tabulka_2 a tabulka_3 = strany a počet hlasů pro jednotlivé strany
     data_tabulka_2_3 = {}
 
-    for tabulka in tabulky[1:]:
-        radky = tabulka.find_all("tr")[2:]
-        for radek in radky:
-            td = radek.find_all("td")
-            if len(td) >= 3:
-                nazev_strany = td[1].get_text().strip()
-                hlasy = td[2].get_text().replace("\xa0", "").strip()
-                data_tabulka_2_3[nazev_strany] = hlasy
+    tabulka_2_3 = soup.find_all("table")[1:] # najde ostatní tabulky na stránce (od 2. tabulky..)
 
-    return {**data_tabulka_1, **data_tabulka_2_3}
+    for tabulka in tabulka_2_3:
+        tr = tabulka.find_all("tr")[2:] # Pro každou tabulku najde všechny řádky kromě prvních 2 (záhlaví)
+
+        for radek in tr:
+            td = radek.find_all("td") # Po každý řádek najde sloupec
+            data_tabulka_2_3[td[1].get_text()] = td[2].get_text().replace("\xa0", "").strip() # Hodnotu ze sloupce 2 přiřadí jako klíč a hodnotu ze sloupce 3 jako jeho hodnotu
+            
+    result = {**data_tabulka_1, **data_tabulka_2_3} # Sloučí dva slovníky - data z tabulky 1 a z tabulek 2 a 3
+    return result
 
 
 def hlavni_scraping(url, soup) -> list[dict[str, str]]:
@@ -191,7 +178,7 @@ def main() -> None:
     Hlavní vstupní  bod programu. 
     Získá argumenty, načte stránku a spustí scraping + zápis výsledků
     '''
-    
+
     url, slozka = definuj_argumenty() #získání URL hlavní stránky a názvu složky 
 
     odpoved = requests.get(url) #Načtení stránky a vytvoření bs objektu
@@ -211,35 +198,5 @@ def main() -> None:
     print(zprava) # Vypíše hlášku zda, byl soubor úspěšně vytvořen, či daná složka už existuje
 
 if __name__ == "__main__":
-    print("Program spuštěn...")
+    print("Program začal...")
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
